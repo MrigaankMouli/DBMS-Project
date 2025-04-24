@@ -1,0 +1,94 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql" // Change to your database provider (e.g., "mysql", "sqlite")
+  url      = env("DATABASE_URL") // Ensure DATABASE_URL is defined in your .env file
+}
+
+model Department {
+  Dep_ID     Int      @id @default(autoincrement())
+  Dep_Name   String
+  HOD        String
+  Min_Credit Int
+  Faculty    Faculty[]
+  Student    Student[]
+  Course     Course[]
+}
+
+model Faculty {
+  Faculty_ID   Int      @id @default(autoincrement())
+  Faculty_Name String
+  Dep_ID       Int
+  Department   Department @relation(fields: [Dep_ID], references: [Dep_ID])
+  Offers       Offers[]
+}
+
+model Student {
+  S_ID         Int         @id @default(autoincrement())
+  Name         String
+  CGPA         Float?
+  Dep_ID       Int
+  Seniority    Int?
+  Total_Credit Int?
+  Department   Department @relation(fields: [Dep_ID], references: [Dep_ID])
+  Enrolled     Enrolled[]
+}
+
+model Course {
+  Course_ID   Int       @id @default(autoincrement())
+  Course_Name String
+  Credit      Int
+  Dep_ID      Int
+  Max_Students Int
+  Is_Elective Boolean   @default(false)
+  Department  Department @relation(fields: [Dep_ID], references: [Dep_ID])
+  Offers      Offers[]
+  Enrolled    Enrolled[]
+  Schedule    Schedule[]
+}
+
+model Offers {
+  Faculty_ID Int
+  Course_ID  Int
+  Faculty    Faculty @relation(fields: [Faculty_ID], references: [Faculty_ID])
+  Course     Course  @relation(fields: [Course_ID], references: [Course_ID])
+
+  @@id([Faculty_ID, Course_ID])
+}
+
+model Enrollment {
+  Enrollment_ID Int       @id @default(autoincrement())
+  Enrollment_Time DateTime @default(now())
+  Enrolled       Enrolled[]
+  Status         Status?
+}
+
+model Enrolled {
+  S_ID          Int
+  Course_ID     Int
+  Enrollment_ID Int
+  Student       Student     @relation(fields: [S_ID], references: [S_ID])
+  Course        Course      @relation(fields: [Course_ID], references: [Course_ID])
+  Enrollment    Enrollment  @relation(fields: [Enrollment_ID], references: [Enrollment_ID])
+
+  @@id([S_ID, Course_ID])
+}
+
+model Status {
+  Enrollment_ID     Int      @id
+  Enrollment_Status String
+  Enrollment        Enrollment @relation(fields: [Enrollment_ID], references: [Enrollment_ID])
+}
+
+model Schedule {
+  Sched_ID   Int    @id @default(autoincrement())
+  Course_ID  Int
+  Day        String
+  Time_Start DateTime
+  Time_End   DateTime
+  Room_No    String
+  Building   String
+  Course     Course @relation(fields: [Course_ID], references: [Course_ID])
+}
